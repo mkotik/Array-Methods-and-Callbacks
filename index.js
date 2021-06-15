@@ -129,15 +129,83 @@ function getCountryWins(data, teamInitials) {
 /* 💪💪💪💪💪 Stretch 2: 💪💪💪💪💪 
 Write a function called getGoals() that accepts a parameter `data` and returns the team with the most goals score per appearance (average goals for) in the World Cup finals */
 
-function getGoals(/* code here */) {
-  /* code here */
+// I know this is not the prettiest code. However, it does seem to work. I started by defining two outside functions, which later become callback functions.
+
+const homeGames = function (data, teamInitials) {
+  return data.filter((cur) => cur["Home Team Initials"] === teamInitials);
+};
+const awayGames = function (data, teamInitials) {
+  return data.filter((cur) => cur["Away Team Initials"] === teamInitials);
+};
+
+function getGoals(data) {
+  const initials = new Set(
+    data.flatMap((cur) => [
+      cur["Home Team Initials"],
+      cur["Away Team Initials"],
+    ])
+  );
+  const teamAvgPoints = [];
+  const avgPointsArr = [];
+  initials.forEach(function (cur) {
+    const homePoints = homeGames(data, cur).reduce(
+      (acc, cur) => acc + cur["Home Team Goals"],
+      0
+    );
+    const awayPoints = awayGames(data, cur).reduce(
+      (acc, cur) => acc + cur["Away Team Goals"],
+      0
+    );
+    const totalPoints = homePoints + awayPoints;
+    const totalAppearances =
+      homeGames(data, cur).length + awayGames(data, cur).length;
+    const avgPoints = Number((totalPoints / totalAppearances).toFixed(2));
+    teamAvgPoints.push(cur, avgPoints);
+    avgPointsArr.push(avgPoints);
+  });
+  const max = Math.max(...avgPointsArr);
+  const maxTeamIndex = teamAvgPoints.indexOf(max) - 1;
+  const maxTeamInitials = teamAvgPoints[maxTeamIndex];
+  const teamName =
+    data[data.findIndex((cur) => cur["Home Team Initials"] == maxTeamInitials)][
+      "Home Team Name"
+    ];
+  return teamName;
 }
 
 /* 💪💪💪💪💪 Stretch 3: 💪💪💪💪💪
 Write a function called badDefense() that accepts a parameter `data` and calculates the team with the most goals scored against them per appearance (average goals against) in the World Cup finals */
 
-function badDefense(/* code here */) {
-  /* code here */
+function badDefense(data) {
+  const teams = new Set(
+    data.flatMap((cur) => [cur["Home Team Name"], cur["Away Team Name"]])
+  );
+  const avgScoredAgainstArr = [];
+  teams.forEach(function (curTeam) {
+    const homeGames = data.filter(
+      (curGame) => curGame["Home Team Name"] == curTeam
+    );
+    const scoredAgainst_home = homeGames.reduce(
+      (acc, curGame) => acc + curGame["Away Team Goals"],
+      0
+    );
+    const awayGames = data.filter(
+      (curGame) => curGame["Away Team Name"] == curTeam
+    );
+    const scoredAgainst_away = awayGames.reduce(
+      (acc, curGame) => acc + curGame["Home Team Goals"],
+      0
+    );
+    const totalScoredAgainst = scoredAgainst_home + scoredAgainst_away;
+    const avgScoredAgainst = Number(
+      (totalScoredAgainst / (homeGames.length + awayGames.length)).toFixed(2)
+    );
+    avgScoredAgainstArr.push(avgScoredAgainst);
+  });
+  const max = Math.max(...avgScoredAgainstArr);
+  const index = avgScoredAgainstArr.findIndex((cur) => cur === max);
+  const teamsArr = Array.from(teams);
+  return teamsArr[index];
 }
 
 /* If you still have time, use the space below to work on any stretch goals of your chosing as listed in the README file. */
